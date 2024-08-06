@@ -1,0 +1,109 @@
+---
+heroImage: /src/assets/images/linq.webp
+category: Desarrollo de Software
+title: C# LINQ Metodos más usuales
+description: >-
+  Si eres desarrollador back-end NET, entonces ya sabes que el lenguaje
+  principal utilizado es C# y una de las poderosas herramientas que C# ofrece
+  desde el principio es LINQ
+pubDate: 2024-08-06T05:00:00.000Z
+tags:
+  - linq
+  - csharp
+---
+
+## Introducción
+
+Si eres desarrollador .NET, entonces ya sabes que el lenguaje principal utilizado es C# y una de las poderosas herramientas que C# ofrece es LINQ, la biblioteca nos ofrece contenedores y métodos de manipulación de datos que nos facilitan la vida como desarrolladores. Especialmente cuando estamos tratando de filtrar datos y utilizar para nuestras necesidades.
+
+En este post, te mostraré los principales métodos que utilizo en mi trabajo diario como desarrollador back-end.
+
+Para los fines de esta demostración, usaré una aplicación de consola C#, donde tengo una clase Person
+
+(detalles generales como propiedades) y un repositorio de Person que tiene métodos para recuperar los datos de las personas en función a las necesidades
+
+Person class
+
+```csharp
+public class Person
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public int Age { get; set; }
+    public GenderEnum Gender { get; set; }
+    public override string ToString()
+    {
+        return $"Name: {FirstName} {LastName}, Age: {Age}, Gender: {Gender}";
+    }
+}
+
+public enum GenderEnum
+{
+    FEMALE = 1,
+    MALE = 2
+};
+```
+
+Person Repository
+
+```csharp
+public class PesonRepository
+{
+    private readonly List<Person> PersonContainer;
+}
+```
+
+## FirstOrDefault
+
+FirstOrDefault se usa para retornar el primer elemento en consecuencia a la condición especificada (function predicate)
+
+```csharp
+public Person FindPersonByname(string nameToSearch)
+{
+    return PersonContainer.FirstOrDefault(p => p.FirstName.Contains(nameToSearch) || p.FirstName.Contains(nameToSearch));
+}
+```
+
+## Where y Select
+
+Por lo general, los encadeno, filtro mi colección especificando DONDE y SELECCIONO lo que necesito del objeto y lo extraigo.
+
+```csharp
+public List<Person> SearchPeopleByName(string nameToSearch)
+{
+    return PersonContainer
+        .Where(p => p.FirstName.Contains(nameToSearch) || p.LastName.Contains(nameToSearch))
+        .Select(p => p).ToList();
+}
+```
+
+## OrderBy y OrderByDecending
+
+Los uso respectivamente cada vez que necesito ordenar mis objetos complejos en función de ciertas propiedades.
+
+```csharp
+public List<Person> GetPersonsOrderedByAge(bool isDesecending)
+{
+    var personsOrdered = PersonContainer.OrderBy(p => p.Age).ToList();
+
+    if (isDesecending) return personsOrdered.OrderByDescending(p => p.Age).ToList();
+
+    return personsOrdered;
+}
+```
+
+## Min y Max
+
+Son los que menos uso en mis tareas diarias, pero me ayudan a identificar cuál es el valor más alto/más bajo en la propiedad de un objeto para realizar más consultas sobre la colección
+
+```csharp
+public int GetYoungestPersonAge()
+{
+    return PersonContainer.Min(p => p.Age);
+}
+
+public int GetOldestPersonAge()
+{
+    return PersonContainer.Max(p => p.Age);
+}
+```
