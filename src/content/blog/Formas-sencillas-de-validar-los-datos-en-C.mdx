@@ -1,0 +1,102 @@
+---
+heroImage: /src/assets/images/validacion-clase-csharp.webp
+category: Desarrollo de Software
+title: Formas sencillas de validar los datos en C#
+description: >-
+  Como sabemos, tenemos múltiples librerías de terceros para la validación de
+  datos, ejemplo FluentValidation. Pero en este artículo no vamos a instalar
+  ningún paquete externo.
+pubDate: 2024-08-06T05:00:00.000Z
+tags:
+  - csharp
+---
+
+Hoy vamos a ver cómo podemos validar de forma sencilla los datos en C# sin escribir demasiadas líneas de código. He visto múltiples aplicaciones donde el desarrollador ha escrito demasiadas líneas de código para validaciones simples, esto aumenta el tamaño del proyecto y por ende es complejo de mantener y leer el código.
+
+Como sabemos, tenemos múltiples librerías de terceros para la validación de datos, ejemplo [FluentValidation](https://docs.fluentvalidation.net/en/latest/). Pero en este artículo no vamos a instalar ningún paquete externo. En cambio, usaremos el espacio de nombres System.ComponentModel.DataAnnotations. En este espacio de nombres tenemos múltiples atributos que podemos usar directamente en nuestro modelo.
+
+Tenemos los siguientes atributos de validación más utilizados y básicos.
+
+1. Required: Asegura que la propiedad debe tener valor.
+2. StringLength: Garantiza que el valor de la propiedad no debe sobrepasar la longitud máxima definida
+3. EmailAddress: Asegura que el valor es una dirección de correo electrónico.
+4. Phone: Asegura que el valor es un número de teléfono.
+5. Compare: Asegura que los valores de dos propiedades coincidan.
+
+Y muchos más….
+
+A continuación se muestra un ejemplo de las validaciones antes mencionada.
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+namespace ValidatorExampleApp.Models
+{
+    public class User
+    {
+        [Key]
+        public int Id { get; set; }
+        [Required]
+        [StringLength(20, ErrorMessage = "Name connot be greater than 20 characters")]
+        public string Name { get; set; }
+        [EmailAddress]
+        [Required]
+        public string Email { get; set; }
+        [Required]
+        public string Address { get; set; }
+        [Required]
+        [Phone]
+        public string PhoneNumber { get; set; }
+        [Required]
+        public string Password { get; set; }
+        [Required]
+        [Compare("Password", ErrorMessage = "Password and Confirm password is not matching")]
+        public string ConfirmPassword { get; set; }
+
+    }
+}
+```
+
+En esta clase tenemos múltiples propiedades y en cada una de ellas tenemos algunos atributos de validación, también conocido como [DataAnnotations](https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations?view=net-6.0)
+
+Ahora, vamos a ver como podemos ejecutar las validaciones sobre nuestro modelo.
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+using ValidatorExampleApp.Models;
+
+var user = new User
+{
+    Name = "Este es un nombre con más de 20 caracteres y la propiedad de nuestro modelo no va soportar",
+    Email = "email incorrecto",
+    PhoneNumber = "El número de telefono no debe aceptar caracteres",
+    Password = "password",
+    ConfirmPassword = "NoEsIgualaPassword"
+};
+
+var context = new ValidationContext(user, serviceProvider: null, items: null);
+var results = new List<ValidationResult>();
+
+var isValid = Validator.TryValidateObject(user, context, results, true);
+if (!isValid)
+{
+    foreach (var item in results)
+    {
+        Console.WriteLine(item.ErrorMessage); 
+    }
+}
+```
+
+Hemos creado una instancia de nuestra clase `user` y hemos dado todos los valores incorrectos para desencadenar cada validación contra el objeto `user`
+
+```csharp
+var context = new ValidationContext(user, serviceProvider: null, items: null);
+```
+
+Inicializamos la clase `ValidationContext` pasando como parámetro al objeto `user`. Y luego, en la siguiente línea, estamos inicializando una lista de tipo `ValidationResult`, aquí es donde vamos a guardar todos los mensajes de validación. La mágia ocurre con la siguiente línea de código
+
+```csharp
+var isValid = Validator.TryValidateObject(user, context, results, true)
+```
+
+Todo el mensaje de validación se agregará en el objeto `results` durante la ejecución de la función `TryValidateObject`. Después de la ejecución de `TryValidatObject` estamos imprimiendo los mensajes de validación.
